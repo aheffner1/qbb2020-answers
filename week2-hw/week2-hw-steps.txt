@@ -1,0 +1,37 @@
+Step 1: index the sacCer3 genome with bwa index
+$ bwa index sacCer3.fa
+
+Step 2: alignment of reads to sacCer3 reference genome
+bash script called alignreads.sh
+$ touch alignreads.sh
+$ chmod +x alignreads.sh
+$ subl alignreads.sh
+complete script - runs through reads and puts it through bwa mem
+	which aligns to ref and output is sam file 
+	*see alignreads.sh
+$ ./alignreads.sh (runs alignreads.sh)
+
+Step 3: create sorted bam files for each read alignment with samtools
+$ touch sortinbam.sh 
+$ chmod +x sortinbam.sh 
+$ subl sortinbam.sh
+complete script - runs through each sam file and makes into a bam file and sorts
+        *see sortinbam.sh
+
+Step 4: create a VCF variant calling with freebayes
+$ freebayes -p1 --genotype-qualities -f sacCer3.fa *.BAM
+
+Step 5: filter variants based on estimated allelic frequency greater than 0.99
+$ vcffilter -f "AF > 0.99" var.vcf >> filteredvcf.vc
+
+Step 6: decompose complex haplotypes using vcfallelicprimitives
+$ vcfallelicprimitives -k -g filteredvcf.vcf >> decomphaplotypes.vcf
+where -k is keepinfoflag and -g is keepgenotypeflag
+
+Step 7: variant effect prediction with snpeff
+download genome for reference and effect prediction
+$ snpeff download R64-1-1.86
+$ snpeff ann R64-1-1.86 decomphaplotypes.vcf
+
+Step 8: Python script to plot
+week2-hw-step8.py
