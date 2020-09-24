@@ -21,8 +21,8 @@ complete script - runs through each sam file and makes into a bam file and sorts
 Step 4: create a VCF variant calling with freebayes
 $ freebayes -p1 --genotype-qualities -f sacCer3.fa *.BAM
 
-Step 5: filter variants based on estimated allelic frequency greater than 0.99
-$ vcffilter -f "AF > 0.99" var.vcf >> filteredvcf.vc
+Step 5: filter variants based on estimated probability of polymorphism greater than 0.99 would
+$ vcffilter -f "QUAL < 20" var.vcf >> filteredvcf.vcf
 
 Step 6: decompose complex haplotypes using vcfallelicprimitives
 $ vcfallelicprimitives -k -g filteredvcf.vcf >> decomphaplotypes.vcf
@@ -31,7 +31,7 @@ where -k is keepinfoflag and -g is keepgenotypeflag
 Step 7: variant effect prediction with snpeff
 download genome for reference and effect prediction
 $ snpeff download R64-1-1.86
-$ snpeff ann R64-1-1.86 decomphaplotypes.vcf
+$ snpeff ann R64-1-1.86 decomphaplotypes.vcf >> effectpred.vcf
 
 Step 8: Python script to plot
-week2-hw-step8.py
+08-week2-hw.ipynb
