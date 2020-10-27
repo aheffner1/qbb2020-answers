@@ -11,7 +11,7 @@ E5_file = '/Users/cmdb/qbb2020-answers/week6-hw/SRR3083929_1.chr6_bismark_bt2_pe
 
 # read files into dataframes
 header1 = ['0', 'gene_id', 'chr', '3', 'start', 'stop', '6', '7', '8', '9', '10', '11', 'gene_name', '13', '14', '15']
-header2 = ['chr', 'start', 'end', 'methyl_percent']
+header2 = ['chr', 'start', 'stop', 'methyl_percent']
 ref = pd.read_csv(ref_file, sep = '\t', header=None, names = header1, skiprows=1)
 E4 = pd.read_csv(E4_file, sep = '\t', header=None, names = header2, skiprows=1)
 E5 = pd.read_csv(E5_file, sep = '\t', header=None, names = header2, skiprows=1)
@@ -31,13 +31,13 @@ for ref_key, ref_values in ref.iterrows():
     # if the mean methylation for a gene in E4 is zero, skip it.
     if E4_in_gene['methyl_percent'].sum() == 0: 
         continue
+
     # take mean of E4 methylation within gene 
-    E4_me_per = E4_in_gene['methyl_percent'].mean()
-    
+    E4_me_per = ((E4_in_gene['stop'] - E4_in_gene['start'])*E4_in_gene['methyl_percent']).sum()
     # find methylation sites within gene for E5.5
     E5_in_gene = E5[(E5['start']<ref_stop) & (E5['start']>ref_start)]
     # take mean of E5 methylation within gene 
-    E5_me_per = E5_in_gene['methyl_percent'].mean()
+    E5_me_per = ((E5_in_gene['stop'] - E5_in_gene['start'])*E5_in_gene['methyl_percent']).sum()
     # find fold change of E5.5 to E4
     E5_E4_me = E5_me_per/E4_me_per
     methyl_dict[gene] = E5_E4_me
