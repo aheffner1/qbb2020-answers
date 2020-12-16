@@ -1,0 +1,72 @@
+Homework: Analysis of metagenomic data
+
+Step 1: Investigate the taxonomic profile of the reads
+
+(1a) Parsing the kraken files - used a for loop in a bash script
+	this turns takes the main column from the kraken files removes unwanted names such as root and semi-colons 
+	and returns one file with the first column a count of uniq lines and it is tab delimited
+
+	subl krona-input.sh
+
+	#!/bin/bash
+	for SAMPLE in SRR492183 SRR492188 SRR492190 SRR492194 SRR492186 SRR492189 SRR492193 SRR492197 
+	do 
+	cut -f 2 ${SAMPLE}.kraken | sed 's/root;/	/g' | sed 's/organisms;/	/g' | sed 's/group;/	/g' | sed 's/;/	/g' >> all_samples.kraken
+	done
+	uniq -c all_samples.kraken > all_samples_c.kraken
+
+	./krona-input.sh
+
+Question 1: Briefly comment on the trends you see in the gut microbiota throughout the first week.
+
+
+
+(1b) Run Krona 
+	
+	ktImportText all_samples_c.kraken -o output-samples.html
+
+	open output-samples.html
+
+Step 2: Deconvolute the assembled scaffolds into individual genomes (binning)
+	
+(2a) Index the assembly
+	bwa index assembly.fasta
+
+(2b) Create bash script file to align all files to the assembly.fasta
+	subl align.sh
+
+	#!/bin/bash
+	for SAMPLE in SRR492183 SRR492188 SRR492190 SRR492194 SRR492186 SRR492189 SRR492193 SRR492197 
+	do
+	bwa mem -R "@RG\tID:${SAMPLE}\tSM:${SAMPLE}" -o ${SAMPLE}.sam assembly.fasta READS/${SAMPLE}_1.fastq READS/${SAMPLE}_2.fastq
+	done
+
+	./align.sh
+
+(2c) use metabat2 to bin the alignments hopefully into distinct genomes assemblies
+
+	jgi_summarize_bam_contig_depths --outputDepth depth.txt *.bam
+
+	metabat2 -i assembly.fasta -a depth.txt -o bins_dir/bin
+
+Question 2: What metrics in the contigs can we use to group them together?
+
+Question 3:
+(A) How many bins did you get?	 6 
+
+(B) Roughly what percentage of the assembly do they represent? 
+wc -c assembly.fasta = 38,000,000 wc bin(1-6).fa = 13,000,000 
+13,000,000/38,000,000 = 34 %
+
+(C) Do you think the sizes of each bin look about right, based on what you know about the size of prokaryotic genomes? 
+Yes, the size of each bin is roughly 2 Mb (wc -c bin1.fa) this is similar to the E coli genome ~4.6Mb.
+
+(D) How would you estimate how complete and how contaminated each bin is?
+Once you find the likely species that the bin represents you can align your bin assembly to the real genome. This will give you how complete 
+and contaminated the binning is.
+
+Step 3: Estimate the taxonomy of your putative genomes
+
+
+
+Step 4: Make a heatmap of the individual bin abundances over time
